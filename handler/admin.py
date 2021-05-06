@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Gem, Customer
+from .models import Operation, Customer
 
-admin.site.register(Gem)
+admin.site.register(Operation)
 admin.site.register(Customer)
