@@ -1,0 +1,11 @@
+asgiref==3.3.4
+certifi==2019.9.11
+Django==3.2.2
+djangorestframework==3.12.4
+pipenv==2018.11.26
+psycopg2-binary==2.8.6
+pytz==2021.1
+sqlparse==0.4.1
+typing-extensions==3.10.0.0
+virtualenv==16.7.7
+virtualenv-clone==0.5.3
