@@ -9,6 +9,8 @@ class Operation(models.Model):
     quantity = models.PositiveSmallIntegerField('Количество купленных камней')
     date = models.DateTimeField('Дата и время операции')
 
+    def __str__(self):
+        return f'Операция покупателя: {self.customer}'
 
 
 class Customer(models.Model):
