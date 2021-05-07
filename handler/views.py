@@ -5,7 +5,6 @@ from .serializers import (
     CreateListOperationSerializer,
     CustomerListSerializer
 )
-from .service import create_customers_from_operations
 
 
 class CreateListOperationView(generics.CreateAPIView):
@@ -17,6 +16,5 @@ class CustomerListView(generics.ListAPIView):
     serializer_class = CustomerListSerializer
 
     def get_queryset(self):
-        create_customers_from_operations()
         customers = Customer.objects.order_by('-spent_money')[:5]
         return customers

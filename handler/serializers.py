@@ -4,6 +4,7 @@ from io import TextIOWrapper
 from rest_framework import serializers
 
 from .models import Operation, Customer
+from .service import create_customers_and_gems_from_operations
 
 
 class CreateListOperationSerializer(serializers.ModelSerializer):
@@ -30,7 +31,8 @@ class CreateListOperationSerializer(serializers.ModelSerializer):
                 'date': row[4]
             }
             to_insert.append(operation)
-        Operation.objects.bulk_create(Operation(**operation) for operation in to_insert)
+        operations = Operation.objects.bulk_create(Operation(**operation) for operation in to_insert)
+        create_customers_and_gems_from_operations(operations)
         return request
 
 
