@@ -26,33 +26,20 @@ def create_customers_and_gems_from_operations(operations):
             customer = {
                 'username': operation.customer,
                 'spent_money': operation.total,
-                'gems': set(operation.item)
+                'gems': {operation.item}
             }
             customers_to_insert[customer['username']] = customer
-    # print(customers_to_insert)
-    # customers_to_insert_list = [{
-    #     'name': customer.get('username'),
-    #     'spent_money': customer.get('username'),
-    #     'gems': {gem for gem}
-    # } for customer in customers_to_insert]
-    # print(Customer.objects.bulk_create(Customer(**cust) for cust in customers_to_insert_list))
 
+    customers_to_insert_list = [{
+        'username': customer.get('username'),
+        'spent_money': customer.get('spent_money'),
+        # 'gems': {gem for gem in gems if gem in customer.get('gems')}
+    } for customer in customers_to_insert.values()]
+    Customer.objects.bulk_create(Customer(**cust) for cust in customers_to_insert_list)
 
-
-    # Operation(**operation)
-    # for operation in to_insert
-
-    # customers_to_insert = {}
-
-    # customer = {
-    #     'username': operation.customer,
-    #     'spent_money':
-    # }
-
-    # operation = {
-    #     'customer': row[0],
-    #     'item': row[1],
-    #     'total': int(row[2]),
-    #     'quantity': int(row[3]),
-    #     'date': row[4]
-    # }
+    customers = Customer.objects.all()
+    for customer in customers:
+        for gem in gems:
+            if gem.name in customers_to_insert.get(customer.username).get('gems'):
+                customer.gems.add(gem)
+        customer.save()
