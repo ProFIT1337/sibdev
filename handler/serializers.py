@@ -32,3 +32,10 @@ class CreateListOperationSerializer(serializers.ModelSerializer):
             to_insert.append(operation)
         Operation.objects.bulk_create(Operation(**operation) for operation in to_insert)
         return request
+
+
+class CustomerListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Customer,
+        fields = ('username', 'spent_money', 'gems')

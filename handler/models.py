@@ -19,5 +19,6 @@ class Customer(models.Model):
     spent_money = models.PositiveIntegerField('Сумма потраченных средств', default=0)
     gems = models.JSONField('Купленные камни')
 
+
     def __str__(self):
         return self.username
