@@ -38,7 +38,12 @@ class CustomerListView(generics.ListAPIView):
 
     @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                'response': super().get(request, *args, **kwargs).data
+            }
+        )
 
     def get_queryset(self):
         """Получаем только 5 покупателей, потративших наибольшую сумму"""
