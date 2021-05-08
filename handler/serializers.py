@@ -1,9 +1,10 @@
 import csv
 from io import TextIOWrapper
 
+from django.db.models import QuerySet, Count, FilteredRelation, Q
 from rest_framework import serializers
 
-from .models import Operation, Customer
+from .models import Operation, Customer, Gem
 from .service import create_customers_and_gems_from_operations
 
 
@@ -36,8 +37,23 @@ class CreateListOperationSerializer(serializers.ModelSerializer):
         return request
 
 
+class FilterGemsSerializer(serializers.ListSerializer):
+
+    def to_representation(self, data):
+        new_data = data.filter(is_visable=True)
+        return super().to_representation(new_data)
+
+
+class GemListSerializer(serializers.ModelSerializer):
+    class Meta:
+        list_serializer_class = FilterGemsSerializer
+        model = Gem
+        fields = ('name',)
+
+
 class CustomerListSerializer(serializers.ModelSerializer):
+    gems = GemListSerializer(read_only=True, many=True)
 
     class Meta:
-        model = Customer,
+        model = Customer
         fields = ('username', 'spent_money', 'gems')
