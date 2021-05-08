@@ -20,9 +20,6 @@ class CreateListOperationView(generics.CreateAPIView):
         try:
             super().post(request, *args, **kwargs)
         except ValidationError as e:
-            print(e.args)
-            print(e.params)
-            print(e.error_list)
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
@@ -37,9 +34,9 @@ class CustomerListView(generics.ListAPIView):
     """Контроллер вывода результатов работы"""
     serializer_class = CustomerListSerializer
 
-    # @method_decorator(cache_page(60 * 60 * 2))
-    # def get(self, request, *args, **kwargs):
-    #     return super().get(request, *args, **kwargs)
+    @method_decorator(cache_page(60 * 60 * 2))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         """Получаем только 5 покупателей, потративших наибольшую сумму"""

@@ -1,10 +1,9 @@
 import csv
 from io import TextIOWrapper
 
-from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from django.core.validators import FileExtensionValidator
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 
 from .models import Operation, Customer, Gem
 from .service import create_customers_and_gems_from_operations, clear_db
@@ -26,6 +25,7 @@ class CreateListOperationSerializer(serializers.ModelSerializer):
             Данные о покупателях в модель Customer
         """
         clear_db()
+        cache.clear()
         file = request.get('file')
         csv_file = TextIOWrapper(file, encoding='utf8')
         reader = csv.reader(csv_file)
