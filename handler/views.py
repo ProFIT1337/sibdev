@@ -1,4 +1,3 @@
-from django.db.models import Count
 from rest_framework import generics
 
 from .models import Operation, Customer
@@ -9,13 +8,16 @@ from .serializers import (
 
 
 class CreateListOperationView(generics.CreateAPIView):
+    """Контроллер для загрузки таблицы операций(Operation)"""
     model = Operation
     serializer_class = CreateListOperationSerializer
 
 
 class CustomerListView(generics.ListAPIView):
+    """Контроллер вывода результатов работы"""
     serializer_class = CustomerListSerializer
 
     def get_queryset(self):
+        """Получаем только 5 покупателей, потративших наибольшую сумму"""
         customers = Customer.objects.order_by('-spent_money')[:5]
         return customers

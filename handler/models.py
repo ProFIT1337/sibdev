@@ -14,8 +14,9 @@ class Operation(models.Model):
 
 
 class Gem(models.Model):
+    """Камень"""
     name = models.CharField('Название', max_length=50)
-    is_visable = models.BooleanField('Показывать?', default=False)
+    is_visible = models.BooleanField('Показывать ли камень в результатах', default=False)
 
     def __str__(self):
         return self.name
@@ -26,7 +27,7 @@ class Customer(models.Model):
     username = models.CharField('Логин', max_length=100)
     spent_money = models.PositiveIntegerField('Сумма потраченных средств', default=0)
     gems = models.ManyToManyField(Gem, verbose_name='Купленные камни', related_name='customers')
-    in_top_five = models.BooleanField('Входит в пятёрку', default=False)
+    is_in_top_five = models.BooleanField('Входит в пятёрку', default=False)
 
     def __str__(self):
         return self.username
