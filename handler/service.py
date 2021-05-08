@@ -22,7 +22,7 @@ def create_gems(operations):
 def create_customers(operations):
     """
         Создаёт покупателей(Customer).
-        Возвращает словарь созданных покупателей.
+        Возвращает созданных покупателей и сформированный словарь из покупателей.
     """
     customers_to_insert = dict()
     for operation in operations:
@@ -43,8 +43,8 @@ def create_customers(operations):
         'spent_money': customer.get('spent_money'),
     } for customer in customers_to_insert.values()]
 
-    Customer.objects.bulk_create(Customer(**customer) for customer in customers_to_insert_list)
-    return customers_to_insert
+    customers = Customer.objects.bulk_create(Customer(**customer) for customer in customers_to_insert_list)
+    return customers, customers_to_insert
 
 
 def get_top_customers(customers):
@@ -53,28 +53,34 @@ def get_top_customers(customers):
     return top_customers[:5]
 
 
-def add_gems_to_customers(customers_dict):
+def add_gems_to_customers(customers, customers_dict):
     """Добавляет купленные пользователями камни в поле gems модели Customer"""
     gems = Gem.objects.all()
-    customers = Customer.objects.all()
     top_customers = get_top_customers(customers)
     customers_to_insert = []
+    gems_to_customer_links = []
+    customers = Customer.objects.all()
     for customer in customers:
         for gem in gems:
             if gem.name in customers_dict.get(customer.username).get('gems'):
-                customer.gems.add(gem)
+                gems_to_customer_links.append(Customer.gems.through(customer_id=customer.pk, gem_id=gem.pk))
         if customer in top_customers:
             customer.is_in_top_five = True
             customers_to_insert.append(customer)
     Customer.objects.bulk_update(customers_to_insert, fields=('is_in_top_five',))
+    Customer.gems.through.objects.bulk_create(gems_to_customer_links)
 
 
 def mark_gems_to_display():
     """Проверяет все камни(Gem) и изменяет поле is_visible, если этот камень надо отобразить в результатах"""
-    gems = Gem.objects.all()
+    gems = Gem.objects.all().prefetch_related('customers')
     gems_to_insert = []
     for gem in gems:
-        if gem.customers.filter(is_in_top_five=True).count() > 1:
+        customer_count = 0
+        for customer in gem.customers.all():
+            if customer.is_in_top_five:
+                customer_count += 1
+        if customer_count > 1:
             gem.is_visible = True
             gems_to_insert.append(gem)
     Gem.objects.bulk_update(gems_to_insert, fields=('is_visible',))
@@ -83,6 +89,6 @@ def mark_gems_to_display():
 def create_customers_and_gems_from_operations(operations):
     """Создаёт объекты покупателей(Customer) и камней(Gem) на основе операций(Operation)"""
     create_gems(operations)
-    customers_dict = create_customers(operations)
-    add_gems_to_customers(customers_dict)
+    customers, customers_dict = create_customers(operations)
+    add_gems_to_customers(customers, customers_dict)
     mark_gems_to_display()

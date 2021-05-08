@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import generics, status
+from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
 from rest_framework.response import Response
 
 from .models import Operation, Customer
@@ -15,6 +16,7 @@ class CreateListOperationView(generics.CreateAPIView):
     """Контроллер для загрузки таблицы операций(Operation)"""
     model = Operation
     serializer_class = CreateListOperationSerializer
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
 
     def post(self, request, *args, **kwargs):
         try:
