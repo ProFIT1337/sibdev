@@ -1,7 +1,10 @@
 import csv
 from io import TextIOWrapper
 
-from rest_framework import serializers
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
+from rest_framework import serializers, status
+from rest_framework.response import Response
 
 from .models import Operation, Customer, Gem
 from .service import create_customers_and_gems_from_operations, clear_db
@@ -9,7 +12,7 @@ from .service import create_customers_and_gems_from_operations, clear_db
 
 class CreateListOperationSerializer(serializers.ModelSerializer):
     """Сериализатор операций(Operation). Обрабатывает загруженную таблицу"""
-    file = serializers.FileField()
+    file = serializers.FileField(validators=[FileExtensionValidator(['csv'])])
 
     class Meta:
         model = Operation
@@ -23,7 +26,8 @@ class CreateListOperationSerializer(serializers.ModelSerializer):
             Данные о покупателях в модель Customer
         """
         clear_db()
-        csv_file = TextIOWrapper(request.get('file'), encoding='utf8')
+        file = request.get('file')
+        csv_file = TextIOWrapper(file, encoding='utf8')
         reader = csv.reader(csv_file)
         next(reader, None)
         operations_to_insert = []

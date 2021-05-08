@@ -42,23 +42,31 @@ def create_customers(operations):
         'username': customer.get('username'),
         'spent_money': customer.get('spent_money'),
     } for customer in customers_to_insert.values()]
-    Customer.objects.bulk_create(Customer(**cust) for cust in customers_to_insert_list)
+
+    Customer.objects.bulk_create(Customer(**customer) for customer in customers_to_insert_list)
     return customers_to_insert
+
+
+def get_top_customers(customers):
+    """Возвращает список из 5 покупателей, потративших наибольшую сумму"""
+    top_customers = sorted(customers, key=lambda customer: customer.spent_money, reverse=True)
+    return top_customers[:5]
 
 
 def add_gems_to_customers(customers_dict):
     """Добавляет купленные пользователями камни в поле gems модели Customer"""
     gems = Gem.objects.all()
     customers = Customer.objects.all()
-    # TODO заменить получение топа покупателей на расчёт их
-    top_customers = Customer.objects.order_by('-spent_money')[:5]
+    top_customers = get_top_customers(customers)
+    customers_to_insert = []
     for customer in customers:
         for gem in gems:
             if gem.name in customers_dict.get(customer.username).get('gems'):
                 customer.gems.add(gem)
         if customer in top_customers:
             customer.is_in_top_five = True
-        customer.save()
+            customers_to_insert.append(customer)
+    Customer.objects.bulk_update(customers_to_insert, fields=('is_in_top_five',))
 
 
 def mark_gems_to_display():
