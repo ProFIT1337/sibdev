@@ -64,7 +64,7 @@ def push_customers_to_db(customers_to_insert):
     """
             Сохраняет покупателей(Customer) в БД.
             Возращает созданный Set
-        """
+    """
     customers_to_insert_list = [{
         'username': customer.get('username'),
         'spent_money': customer.get('spent_money'),
