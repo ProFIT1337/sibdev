@@ -14,6 +14,32 @@ def get_top_customers(customers):
     return top_customers[:5]
 
 
+def parse_file(reader):
+    """
+        Парсит файл, создавая списки из объектов операций(Operation), покупателей(Customer) и камней(Gem).
+        Возращает полученные списки
+    """
+    operations_to_insert = []
+    gems_set = set()
+    customers_to_insert = dict()
+
+    for row in reader:
+        operation = create_operation(row)
+        operations_to_insert.append(operation)
+
+        gems_set.add(operation.get('item'))
+
+        # Получаем покупателя из списка обработанных ранее. Если он есть - обновляем, иначе - создаём
+        customer = customers_to_insert.get(operation.get('customer'))
+        if customer:
+            customer['spent_money'] = customer['spent_money'] + operation.get('total')
+            customer['gems'].add(operation.get('item'))
+        else:
+            customer = create_customer(operation)
+            customers_to_insert[customer['username']] = customer
+
+    return customers_to_insert, gems_set, operations_to_insert
+
 def add_gems_to_customers(customers, customers_dict):
     """Добавляет купленные пользователями камни в поле gems модели Customer"""
     gems = Gem.objects.all()
@@ -47,15 +73,30 @@ def mark_gems_to_display():
     Gem.objects.bulk_update(gems_to_insert, fields=('is_visible',))
 
 
+def create_operation(row):
+    """
+        Создаёт словарь с информацией об операции.
+        Возвращает созданный словарь
+    """
+    operation = {
+        'customer': row[0],
+        'item': row[1],
+        'total': int(row[2]),
+        'quantity': int(row[3]),
+        'date': row[4]
+    }
+    return operation
+
+
 def create_customer(operation):
     """
         Создаёт словарь с информацией о покупателе.
         Возвращает созданный словарь
     """
     customer = {
-        'username': operation.customer,
-        'spent_money': operation.total,
-        'gems': {operation.item}
+        'username': operation.get('customer'),
+        'spent_money': operation.get('total'),
+        'gems': {operation.get('item')}
     }
     return customer
 
@@ -86,25 +127,14 @@ def push_gems_to_db(gems_set):
     return gems
 
 
-def create_customers_and_gems_from_operations(operations):
-    """Создаёт объекты покупателей(Customer) и камней(Gem) на основе операций(Operation)"""
-    gems_set = set()
-    customers_to_insert = dict()
-
-    for operation in operations:
-        gems_set.add(operation.item)
-        # Получаем покупателя из списка обработанных ранее. Если он есть - обновляем, иначе - создаём
-        customer = customers_to_insert.get(operation.customer)
-        if customer:
-            customer['spent_money'] = customer['spent_money'] + operation.total
-            customer['gems'].add(operation.item)
-        else:
-            customer = create_customer(operation)
-            customers_to_insert[customer['username']] = customer
-
+def push_data_to_db(customers_to_insert, gems_set, operations_to_insert):
+    """
+        Сохраняет операции(Operation), покупателей(Customer) и камни(Gem) в БД.
+        Возвращает кортеж из полученных наборов данных
+    """
     customers = push_customers_to_db(customers_to_insert)
     push_gems_to_db(gems_set)
-
     add_gems_to_customers(customers, customers_to_insert)
-
-    mark_gems_to_display()
+    gems = mark_gems_to_display()
+    operations = Operation.objects.bulk_create(Operation(**operation) for operation in operations_to_insert)
+    return customers, gems, operations

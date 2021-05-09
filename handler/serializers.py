@@ -6,7 +6,7 @@ from django.core.validators import FileExtensionValidator
 from rest_framework import serializers
 
 from .models import Operation, Customer, Gem
-from .service import create_customers_and_gems_from_operations, clear_db
+from .service import clear_db, create_customer, push_data_to_db, create_operation, parse_file
 
 
 class CreateListOperationSerializer(serializers.ModelSerializer):
@@ -26,22 +26,14 @@ class CreateListOperationSerializer(serializers.ModelSerializer):
         """
         clear_db()
         cache.clear()
+
         file = request.get('file')
         csv_file = TextIOWrapper(file, encoding='utf8')
         reader = csv.reader(csv_file)
         next(reader, None)
-        operations_to_insert = []
-        for row in reader:
-            operation = {
-                'customer': row[0],
-                'item': row[1],
-                'total': int(row[2]),
-                'quantity': int(row[3]),
-                'date': row[4]
-            }
-            operations_to_insert.append(operation)
-        operations = Operation.objects.bulk_create(Operation(**operation) for operation in operations_to_insert)
-        create_customers_and_gems_from_operations(operations)
+        customers_to_insert, gems_set, operations_to_insert = parse_file(reader)
+
+        push_data_to_db(customers_to_insert, gems_set, operations_to_insert)
         return request
 
 
