@@ -40,13 +40,13 @@ def parse_file(reader):
 
     return customers_to_insert, gems_set, operations_to_insert
 
+
 def add_gems_to_customers(customers, customers_dict):
     """Добавляет купленные пользователями камни в поле gems модели Customer"""
     gems = Gem.objects.all()
     top_customers = get_top_customers(customers)
     customers_to_insert = []
     gems_to_customer_links = []
-    customers = Customer.objects.all()
     for customer in customers:
         for gem in gems:
             if gem.name in customers_dict.get(customer.username).get('gems'):
@@ -133,8 +133,8 @@ def push_data_to_db(customers_to_insert, gems_set, operations_to_insert):
         Возвращает кортеж из полученных наборов данных
     """
     customers = push_customers_to_db(customers_to_insert)
-    push_gems_to_db(gems_set)
+    gems = push_gems_to_db(gems_set)
     add_gems_to_customers(customers, customers_to_insert)
-    gems = mark_gems_to_display()
+    mark_gems_to_display()
     operations = Operation.objects.bulk_create(Operation(**operation) for operation in operations_to_insert)
     return customers, gems, operations
